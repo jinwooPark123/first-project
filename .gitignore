@@ -1,4 +1,49 @@
-venv/
-node_modules/
-.env
+# ------------------------
+# 📁 Python (Backend)
+# ------------------------
 __pycache__/
+*.py[cod]
+*.so
+.env
+.venv/
+venv/
+.env.local
+instance/
+.pytest_cache/
+db.sqlite3
+
+# ------------------------
+# 📁 Node / React (Frontend)
+# ------------------------
+frontend/node_modules/
+frontend/build/
+frontend/.pnp
+frontend/.pnp.js
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
+
+# ------------------------
+# 📁 Environment / OS / Editor
+# ------------------------
+# macOS
+*.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# VSCode / JetBrains IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Others
+*.bak
+*.swp
