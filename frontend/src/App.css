@@ -1,38 +1,83 @@
 .App {
-  text-align: center;
+  max-width: 900px;
+  margin: auto;
+  padding: 20px;
+  font-family: "Noto Sans KR", sans-serif;
+  color: #222;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+textarea {
+  width: 100%;
+  height: 120px;
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  outline: none;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+.btn-group {
+  margin-top: 10px;
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
+  gap: 10px;
+}
+
+button {
+  padding: 8px 14px;
+  border: none;
+  background-color: #4b9ce2;
   color: white;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
 }
 
-.App-link {
-  color: #61dafb;
+button:hover {
+  background-color: #327ab7;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
+.output-section {
+  margin-top: 20px;
+}
+
+.ai-cursor,
+.ai-suggestions,
+.ai-questions,
+.ai-corrections {
+  margin-top: 20px;
+  padding: 15px;
+  border-radius: 8px;
+  background: #f9f9f9;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.05);
+}
+
+.hover-preview {
+  margin-top: 10px;
+  padding: 10px;
+  background: #eef5ff;
+  border-left: 4px solid #4b9ce2;
+  border-radius: 4px;
+  font-size: 14px;
+  color: #333;
+}
+
+.highlight-mode {
+  margin-top: 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.highlight-mode button.active {
+  background-color: #327ab7;
+}
+
+@media (max-width: 600px) {
+  textarea {
+    height: 100px;
   }
-  to {
-    transform: rotate(360deg);
+  button {
+    font-size: 14px;
+    padding: 6px 10px;
   }
 }
