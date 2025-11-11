@@ -1,83 +1,219 @@
+/* =========================================================
+   기본 레이아웃
+========================================================= */
+body {
+  font-family: "Pretendard", sans-serif;
+  background-color: #121212;
+  color: #f2f2f2;
+  margin: 0;
+  padding: 0;
+}
+
 .App {
   max-width: 900px;
-  margin: auto;
+  margin: 30px auto;
   padding: 20px;
-  font-family: "Noto Sans KR", sans-serif;
-  color: #222;
+  background: #1e1e1e;
+  border-radius: 16px;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.05);
 }
 
+/* =========================================================
+   입력 영역
+========================================================= */
 textarea {
   width: 100%;
-  height: 120px;
+  height: 150px;
+  background-color: #202020;
+  color: #e0e0e0;
+  border: 1px solid #333;
+  border-radius: 8px;
   padding: 10px;
   font-size: 16px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  outline: none;
+  resize: none;
+  transition: border-color 0.2s ease;
 }
 
+textarea:focus {
+  outline: none;
+  border-color: #00bcd4;
+}
+
+/* =========================================================
+   버튼 그룹
+========================================================= */
 .btn-group {
-  margin-top: 10px;
+  margin-top: 12px;
   display: flex;
+  flex-wrap: wrap;
   gap: 10px;
 }
 
 button {
-  padding: 8px 14px;
+  background-color: #333;
+  color: #fff;
   border: none;
-  background-color: #4b9ce2;
-  color: white;
-  font-weight: 600;
-  border-radius: 6px;
+  padding: 10px 15px;
+  border-radius: 8px;
   cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s ease;
 }
 
 button:hover {
-  background-color: #327ab7;
+  background-color: #555;
 }
 
-.output-section {
+button.active {
+  background-color: #007bff;
+  color: #fff;
+}
+
+/* =========================================================
+   문체 모드 및 미리보기
+========================================================= */
+.highlight-mode {
   margin-top: 20px;
+}
+
+.hover-preview {
+  margin-top: 10px;
+  background: #2a2a2a;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #ccc;
+  white-space: pre-line;
+}
+
+/* =========================================================
+   출력 구역
+========================================================= */
+.output-section {
+  margin-top: 25px;
+}
+
+.output-section h3 {
+  margin-bottom: 5px;
+  color: #00bcd4;
+  font-weight: 600;
+  border-bottom: 1px solid #333;
+  padding-bottom: 4px;
 }
 
 .ai-cursor,
 .ai-suggestions,
 .ai-questions,
 .ai-corrections {
-  margin-top: 20px;
-  padding: 15px;
+  background-color: #181818;
+  padding: 12px;
   border-radius: 8px;
-  background: #f9f9f9;
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.05);
-}
-
-.hover-preview {
-  margin-top: 10px;
-  padding: 10px;
-  background: #eef5ff;
-  border-left: 4px solid #4b9ce2;
-  border-radius: 4px;
-  font-size: 14px;
-  color: #333;
-}
-
-.highlight-mode {
   margin-top: 15px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  white-space: pre-wrap;
+  line-height: 1.6;
+  word-break: break-word;
 }
 
-.highlight-mode button.active {
-  background-color: #327ab7;
+/* =========================================================
+   실시간 문장 구분 및 가독성 향상
+========================================================= */
+.ai-cursor p {
+  margin: 6px 0;
+  line-height: 1.8;
+  word-break: keep-all;
+  animation: fadeIn 0.8s ease-in-out;
 }
 
-@media (max-width: 600px) {
-  textarea {
-    height: 100px;
+/* =========================================================
+   스트리밍 로딩 상태
+========================================================= */
+.loading {
+  color: #888;
+  font-style: italic;
+  margin-top: 5px;
+  animation: blink 1.2s ease-in-out infinite;
+}
+
+@keyframes blink {
+  0% {
+    opacity: 0.3;
   }
-  button {
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.3;
+  }
+}
+
+/* =========================================================
+   페이드 인 애니메이션
+========================================================= */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* =========================================================
+   스트리밍 구역 강조
+========================================================= */
+.ai-suggestions-streamed {
+  background-color: #1a1a1a;
+  border: 1px dashed #007bff;
+  padding: 12px;
+  border-radius: 8px;
+  margin-top: 15px;
+  color: #e0e0e0;
+  white-space: pre-wrap;
+  line-height: 1.6;
+}
+
+.ai-suggestions-streamed h3 {
+  color: #66ccff;
+  border-bottom: 1px solid #333;
+  padding-bottom: 3px;
+  margin-bottom: 6px;
+}
+
+/* =========================================================
+   스크롤 처리
+========================================================= */
+.ai-cursor,
+.ai-suggestions,
+.ai-suggestions-streamed,
+.ai-questions,
+.ai-corrections {
+  max-height: 300px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+/* =========================================================
+   반응형 대응
+========================================================= */
+@media (max-width: 600px) {
+  .App {
+    padding: 15px;
+    margin: 10px;
+  }
+
+  textarea {
+    height: 120px;
     font-size: 14px;
-    padding: 6px 10px;
+  }
+
+  button {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  .output-section h3 {
+    font-size: 16px;
   }
 }
