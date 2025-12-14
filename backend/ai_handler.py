@@ -5,7 +5,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.callbacks import BaseCallbackHandler
 
 """
-문맥필 / 글잇다 v2.4
+나 문과다 v2.4
 AI는 대신 쓰지 않는다. 사람의 사고를 확장시킨다.
 """
 
@@ -172,7 +172,9 @@ def stream_predict_text(user_input: str, tone: str = "자동 감지"):
         def on_llm_end(self, *args, **kwargs):
             self.queue.put("[DONE]")
         def on_llm_error(self, error: Exception, **kwargs):
-            self.queue.put(f"[ERROR]: {str(error)}")
+            error_msg = str(error)
+            print(f"[ERROR] stream_predict_text LLM 에러: {error_msg}")
+            self.queue.put(f"[ERROR] {error_msg}")
             self.queue.put("[DONE]")
 
     q = Queue()
@@ -205,7 +207,9 @@ def stream_predict_text(user_input: str, tone: str = "자동 감지"):
                 pass
             q.put("[DONE]")
         except Exception as e:
-            q.put(f"[ERROR]: {str(e)}")
+            error_msg = str(e)
+            print(f"[ERROR] stream_predict_text 에러: {error_msg}")
+            q.put(f"[ERROR] {error_msg}")
             q.put("[DONE]")
 
     threading.Thread(target=run_model, daemon=True).start()
@@ -230,7 +234,9 @@ def stream_generate_suggestions(user_input: str, tone: str = "자동 감지"):
         def on_llm_end(self, *args, **kwargs):
             self.queue.put("[DONE]")
         def on_llm_error(self, error: Exception, **kwargs):
-            self.queue.put(f"[ERROR]: {str(error)}")
+            error_msg = str(error)
+            print(f"[ERROR] stream_generate_suggestions LLM 에러: {error_msg}")
+            self.queue.put(f"[ERROR] {error_msg}")
             self.queue.put("[DONE]")
 
     q = Queue()
@@ -289,7 +295,9 @@ def stream_generate_suggestions(user_input: str, tone: str = "자동 감지"):
                 pass
             q.put("[DONE]")
         except Exception as e:
-            q.put(f"[ERROR]: {str(e)}")
+            error_msg = str(e)
+            print(f"[ERROR] stream_generate_suggestions 에러: {error_msg}")
+            q.put(f"[ERROR] {error_msg}")
             q.put("[DONE]")
 
     threading.Thread(target=run_model, daemon=True).start()
@@ -314,7 +322,9 @@ def generate_suggestions_streamed(user_input: str, tone: str = "자동 감지"):
         def on_llm_end(self, *args, **kwargs):
             self.queue.put("[DONE]")
         def on_llm_error(self, error: Exception, **kwargs):
-            self.queue.put(f"[ERROR]: {str(error)}")
+            error_msg = str(error)
+            print(f"[ERROR] generate_suggestions_streamed LLM 에러: {error_msg}")
+            self.queue.put(f"[ERROR] {error_msg}")
             self.queue.put("[DONE]")
 
     q = Queue()
@@ -368,7 +378,9 @@ def generate_suggestions_streamed(user_input: str, tone: str = "자동 감지"):
                 pass
             q.put("[DONE]")
         except Exception as e:
-            q.put(f"[ERROR]: {str(e)}")
+            error_msg = str(e)
+            print(f"[ERROR] generate_suggestions_streamed 에러: {error_msg}")
+            q.put(f"[ERROR] {error_msg}")
             q.put("[DONE]")
 
     threading.Thread(target=run_model, daemon=True).start()
@@ -378,3 +390,204 @@ def generate_suggestions_streamed(user_input: str, tone: str = "자동 감지"):
         if token == "[DONE]":
             break
         yield token
+
+
+# -----------------------------------------------------------
+# 7️⃣ 텍스트 요약 기능
+# -----------------------------------------------------------
+def summarize_text(user_input: str, tone: str = "자동 감지"):
+    """텍스트 요약 기능"""
+    result_container = {"content": None, "error": None}
+
+    def run_invoke():
+        try:
+            llm = ChatOpenAI(model_name="gpt-4o-mini", temperature=0.5)
+            prompt = ChatPromptTemplate.from_template("""
+당신은 텍스트를 요약하는 전문가입니다.
+사용자가 작성한 텍스트의 핵심 내용을 간결하고 명확하게 요약해주세요.
+
+요구사항:
+1. 핵심 내용 추출:
+   - 텍스트의 주요 주제와 논점을 파악하세요.
+   - 중요한 정보와 세부사항을 구분하세요.
+   - 핵심 메시지를 명확하게 전달하세요.
+
+2. 요약 형식:
+   - 원문의 구조와 흐름을 유지하면서 요약하세요.
+   - 문맥과 논리적 연결을 보존하세요.
+   - 불필요한 반복이나 장황한 표현을 제거하세요.
+
+3. 길이 조절:
+   - 원문이 짧으면(100자 이하) 핵심만 간단히 요약하세요.
+   - 원문이 중간 길이면(100-500자) 주요 내용을 요약하세요.
+   - 원문이 길면(500자 이상) 단락별로 핵심을 추출하여 요약하세요.
+
+4. 문체 유지:
+   - tone이 '자동 감지'이면 문체를 스스로 판단하세요.
+   - 원문의 문체와 톤을 일관되게 유지하세요.
+   - 요약이지만 원문의 느낌을 살려주세요.
+
+5. 출력 형식:
+   - 요약된 텍스트만 출력하세요.
+   - 설명이나 부가 설명 없이 요약 내용만 제시하세요.
+
+주의사항:
+- 원문의 핵심 의미를 왜곡하지 마세요.
+- 중요한 정보를 누락하지 마세요.
+- 원문의 문체와 톤을 유지하세요.
+
+현재 문체 모드: {tone}
+
+입력 텍스트:
+{input_text}
+""")
+            formatted = prompt.format_messages(input_text=user_input, tone=tone)
+            response = llm.invoke(formatted)
+            result_container["content"] = response.content.strip()
+        except Exception as e:
+            result_container["error"] = str(e)
+
+    thread = threading.Thread(target=run_invoke)
+    thread.start()
+    thread.join(timeout=30)
+
+    if result_container["error"]:
+        return {"error": f"[ERROR] 요약 실패: {result_container['error']}", "summary": ""}
+    elif result_container["content"]:
+        return {"error": None, "summary": result_container["content"]}
+    else:
+        return {"error": "[ERROR] 요약 응답 없음 또는 시간 초과", "summary": ""}
+
+
+# -----------------------------------------------------------
+# 8️⃣ 텍스트 다듬기 기능 (문장 연결 및 개선)
+# -----------------------------------------------------------
+def polish_text(user_input: str, tone: str = "자동 감지"):
+    """텍스트 다듬기 기능 - 문장을 자연스럽게 연결하고 개선"""
+    result_container = {"content": None, "error": None}
+
+    def run_invoke():
+        try:
+            llm = ChatOpenAI(model_name="gpt-4o-mini", temperature=0.5)
+            prompt = ChatPromptTemplate.from_template("""
+당신은 텍스트를 다듬고 문장을 자연스럽게 연결하는 전문가입니다.
+사용자가 작성한 텍스트를 읽기 쉽고 자연스러운 문장으로 개선해주세요.
+
+요구사항:
+1. 문장 연결 및 자연스러운 흐름:
+   - 각 문장이 독립적으로 존재하는 것이 아니라, 논리적으로 연결되도록 개선하세요.
+   - 문장 간 전환을 자연스럽게 만들어주세요.
+   - 중복되거나 반복되는 내용을 제거하고 통합하세요.
+
+2. 문맥 일관성:
+   - 전체 텍스트의 주제와 맥락을 파악하여 일관된 내용으로 만들어주세요.
+   - 서로 다른 주제를 다루는 문장들이 있다면, 자연스럽게 연결하거나 구분하세요.
+   - 논리적 순서를 재배치하여 읽기 쉽게 만들어주세요.
+
+3. 문장 구조 개선:
+   - 너무 짧거나 끊어진 문장들을 적절히 연결하세요.
+   - 너무 긴 문장은 읽기 쉽게 분리하거나 재구성하세요.
+   - 문장의 주어, 서술어, 목적어가 명확하도록 다듬으세요.
+
+4. 중복 및 불필요한 내용 제거:
+   - 같은 내용을 반복하는 문장들을 하나로 통합하세요.
+   - 불필요한 수식어나 장황한 표현을 간결하게 다듬으세요.
+   - 핵심 내용을 유지하면서 불필요한 부분을 제거하세요.
+
+5. 문체 통일:
+   - tone이 '자동 감지'이면 원문의 문체를 파악하여 일관되게 유지하세요.
+   - 존댓말/반말, 격식/비격식 등 문체를 통일하세요.
+   - 전체적으로 자연스럽고 읽기 쉬운 문체로 만들어주세요.
+
+6. 출력 형식:
+   - 다듬어진 텍스트만 출력하세요.
+   - 설명이나 부가 설명 없이 개선된 텍스트만 제시하세요.
+   - 원문의 핵심 내용과 의미는 유지하되, 표현과 구조를 개선하세요.
+
+주의사항:
+- 원문의 핵심 의미와 내용을 왜곡하지 마세요.
+- 사용자가 의도한 메시지를 유지하세요.
+- 문장을 너무 많이 변경하지 말고, 자연스러운 개선에 집중하세요.
+
+현재 문체 모드: {tone}
+
+입력 텍스트:
+{input_text}
+""")
+            formatted = prompt.format_messages(input_text=user_input, tone=tone)
+            response = llm.invoke(formatted)
+            result_container["content"] = response.content.strip()
+        except Exception as e:
+            result_container["error"] = str(e)
+
+    thread = threading.Thread(target=run_invoke)
+    thread.start()
+    thread.join(timeout=30)
+
+    if result_container["error"]:
+        return {"error": f"[ERROR] 텍스트 다듬기 실패: {result_container['error']}", "polished": ""}
+    elif result_container["content"]:
+        return {"error": None, "polished": result_container["content"]}
+    else:
+        return {"error": "[ERROR] 텍스트 다듬기 응답 없음 또는 시간 초과", "polished": ""}
+
+
+# -----------------------------------------------------------
+# 9️⃣ 띄어쓰기 교정
+# -----------------------------------------------------------
+def correct_spacing(user_input: str, tone: str = "자동 감지"):
+    """한국어 띄어쓰기 교정 기능"""
+    result_container = {"content": None, "error": None}
+
+    def run_invoke():
+        try:
+            llm = ChatOpenAI(model_name="gpt-4o-mini", temperature=0.3)
+            prompt = ChatPromptTemplate.from_template("""
+당신은 한국어 띄어쓰기 교정 전문가입니다.
+사용자가 제공한 텍스트의 띄어쓰기를 올바르게 교정해주세요.
+
+요구사항:
+1. 띄어쓰기 규칙 준수:
+   - 한국어 띄어쓰기 규칙에 따라 올바르게 교정하세요.
+   - 조사, 어미, 보조사 등은 앞 단어와 붙여 씁니다.
+   - 의존 명사, 단위 명사는 띄어 씁니다.
+   - 고유 명사와 일반 명사는 띄어 씁니다.
+   - 수식어와 피수식어의 관계를 고려하여 띄어쓰기를 결정하세요.
+
+2. 문맥 고려:
+   - 문맥에 따라 띄어쓰기가 달라질 수 있으므로 전체 문맥을 고려하세요.
+   - 문장의 의미를 정확히 파악하여 올바른 띄어쓰기를 적용하세요.
+
+3. 원문 유지:
+   - 띄어쓰기만 교정하고, 단어나 문장 구조는 변경하지 마세요.
+   - 원문의 의미와 내용을 그대로 유지하세요.
+
+4. 출력 형식:
+   - 교정된 텍스트만 출력하세요.
+   - 설명이나 부가 설명 없이 교정된 텍스트만 제시하세요.
+
+주의사항:
+- 원문의 단어나 문장을 변경하지 마세요.
+- 띄어쓰기 교정에만 집중하세요.
+- 문체와 톤은 원문 그대로 유지하세요.
+
+현재 문체 모드: {tone}
+입력 텍스트:
+{input_text}
+""")
+            formatted = prompt.format_messages(input_text=user_input, tone=tone)
+            response = llm.invoke(formatted)
+            result_container["content"] = response.content.strip()
+        except Exception as e:
+            result_container["error"] = str(e)
+
+    thread = threading.Thread(target=run_invoke)
+    thread.start()
+    thread.join(timeout=30)
+
+    if result_container["error"]:
+        return {"error": f"[ERROR] 띄어쓰기 교정 실패: {result_container['error']}", "corrected_text": ""}
+    elif result_container["content"]:
+        return {"error": None, "corrected_text": result_container["content"]}
+    else:
+        return {"error": "[ERROR] 띄어쓰기 교정 응답 없음 또는 시간 초과", "corrected_text": ""}
